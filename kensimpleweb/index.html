@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-center text-indigo-700">Student Performance Tracker</h1>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main>
+            <!-- Dynamic Insights Section -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Performance Insights</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-600">Top Performing Student This Month</h3>
+                        <div id="top-student" class="mt-2 text-2xl font-bold text-green-600">Loading...</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-600">Subject with Lowest Average Score</h3>
+                        <div id="lowest-subject" class="mt-2 text-2xl font-bold text-red-600">Loading...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Performance Analytics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-600">Class Average</h3>
+                        <div id="class-average" class="mt-2 text-2xl font-bold text-indigo-600">Loading...</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-600">Top 5 Students</h3>
+                        <div id="top-students" class="mt-2">
+                            <ul class="divide-y">
+                                <!-- Top students will be populated here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="mb-8">
+                <div class=" gap-4">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h3 class="text-lg font-medium text-gray-600 mb-4">Performance by Subject</h3>
+                        <canvas id="subject-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Student Management Section -->
+            <section class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700">Student Management</h2>
+                    <button id="add-student-btn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                        Add New Student
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Math</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Science</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">English</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">History</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Student data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add/Edit Student Modal -->
+    <div id="student-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 id="modal-title" class="text-lg font-medium text-gray-900">Add Student</h3>
+                <form id="student-form" class="mt-4">
+                    <input type="hidden" id="student-id">
+                    <div class="mb-4">
+                        <label for="student-name" class="block text-sm font-medium text-gray-700">Student Name</label>
+                        <input type="text" id="student-name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="math-score" class="block text-sm font-medium text-gray-700">Math Score</label>
+                            <input type="number" id="math-score" min="0" max="100" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                        </div>
+                        <div>
+                            <label for="science-score" class="block text-sm font-medium text-gray-700">Science Score</label>
+                            <input type="number" id="science-score" min="0" max="100" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="english-score" class="block text-sm font-medium text-gray-700">English Score</label>
+                            <input type="number" id="english-score" min="0" max="100" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                        </div>
+                        <div>
+                            <label for="history-score" class="block text-sm font-medium text-gray-700">History Score</label>
+                            <input type="number" id="history-score" min="0" max="100" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancel-btn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let students = [];
+        let currentEditId = null;
+
+        // DOM Elements
+        const studentsTableBody = document.getElementById('students-table-body');
+        const addStudentBtn = document.getElementById('add-student-btn');
+        const studentModal = document.getElementById('student-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const studentForm = document.getElementById('student-form');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const topStudentElement = document.getElementById('top-student');
+        const lowestSubjectElement = document.getElementById('lowest-subject');
+        const classAverageElement = document.getElementById('class-average');
+        const topStudentsElement = document.getElementById('top-students');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStudents();
+            setupEventListeners();
+        });
+
+        // Set up event listeners
+        function setupEventListeners() {
+            addStudentBtn.addEventListener('click', openAddStudentModal);
+            studentForm.addEventListener('submit', handleStudentFormSubmit);
+            cancelBtn.addEventListener('click', closeStudentModal);
+        }
+
+        // Load students from the backend
+        async function loadStudents() {
+
+            const response = await fetch('api/students.php?action=getAll');
+            if (!response.ok) {
+                throw new Error('Failed to fetch students');
+            }
+            students = await response.json();
+            renderStudentsTable();
+            updateAnalytics();
+            renderCharts();
+            
+        }
+
+        // Render students table
+        function renderStudentsTable() {
+            studentsTableBody.innerHTML = '';
+            
+            students.forEach(student => {
+                const average = calculateAverage(student);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${student.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.math}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.science}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.english}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${student.history}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${getScoreColor(average)}">${average.toFixed(1)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 edit-btn" data-id="${student.id}">Edit</button>
+                        <button class="text-red-600 hover:text-red-900 ml-2 delete-btn" data-id="${student.id}">Delete</button>
+                    </td>
+                `;
+                studentsTableBody.appendChild(row);
+            });
+
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    openEditStudentModal(id);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    deleteStudent(id);
+                });
+            });
+        }
+
+        // Calculate average score for a student
+        function calculateAverage(student) {
+            return (parseInt(student.math) + parseInt(student.science) + 
+                    parseInt(student.english) + parseInt(student.history)) / 4;
+        }
+
+        // Get color class based on score
+        function getScoreColor(score) {
+            if (score >= 90) return 'text-green-600';
+            if (score >= 80) return 'text-blue-600';
+            if (score >= 70) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+
+        // Open modal for adding a new student
+        function openAddStudentModal() {
+            modalTitle.textContent = 'Add Student';
+            studentForm.reset();
+            document.getElementById('student-id').value = '';
+            currentEditId = null;
+            studentModal.classList.remove('hidden');
+        }
+
+        // Open modal for editing a student
+        function openEditStudentModal(id) {
+            const student = students.find(s => s.id == id);
+            if (!student) return;
+
+            modalTitle.textContent = 'Edit Student';
+            document.getElementById('student-id').value = student.id;
+            document.getElementById('student-name').value = student.name;
+            document.getElementById('math-score').value = student.math;
+            document.getElementById('science-score').value = student.science;
+            document.getElementById('english-score').value = student.english;
+            document.getElementById('history-score').value = student.history;
+            currentEditId = id;
+            studentModal.classList.remove('hidden');
+        }
+
+        // Close the student modal
+        function closeStudentModal() {
+            studentModal.classList.add('hidden');
+        }
+
+        // Handle form submission for adding/editing students
+        async function handleStudentFormSubmit(e) {
+            e.preventDefault();
+            
+            const studentData = {
+                name: document.getElementById('student-name').value,
+                math: document.getElementById('math-score').value,
+                science: document.getElementById('science-score').value,
+                english: document.getElementById('english-score').value,
+                history: document.getElementById('history-score').value
+            };
+
+            try {
+                let response;
+                if (currentEditId) {
+                    // Update existing student
+                    studentData.id = currentEditId;
+                    response = await fetch('api/students.php?action=update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(studentData)
+                    });
+                } else {
+                    // Add new student
+                    response = await fetch('api/students.php?action=add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(studentData)
+                    });
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to save student');
+                }
+
+                closeStudentModal();
+                loadStudents(); // Reload data
+            } catch (error) {
+                console.error('Error saving student:', error);
+                alert('Failed to save student. Please try again.');
+            }
+        }
+
+        // Delete a student
+        async function deleteStudent(id) {
+            if (!confirm('Are you sure you want to delete this student?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('api/students.php?action=delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: id })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete student');
+                }
+
+                loadStudents(); // Reload data
+            } catch (error) {
+                console.error('Error deleting student:', error);
+                alert('Failed to delete student. Please try again.');
+            }
+        }
+
+        // Update analytics section
+        function updateAnalytics() {
+            // Update class average
+            const classAverage = calculateClassAverage();
+            classAverageElement.textContent = classAverage.toFixed(1);
+
+            // Update top students
+            updateTopStudents();
+
+            // Load dynamic insights
+            loadDynamicInsights();
+        }
+
+        // Calculate class average
+        function calculateClassAverage() {
+            if (students.length === 0) return 0;
+            
+            let total = 0;
+            students.forEach(student => {
+                total += calculateAverage(student);
+            });
+            
+            return total / students.length;
+        }
+
+        // Update top students list
+        function updateTopStudents() {
+            const sortedStudents = [...students].sort((a, b) => {
+                return calculateAverage(b) - calculateAverage(a);
+            });
+            
+            const top5 = sortedStudents.slice(0, 5);
+            
+            let html = '<ul class="divide-y">';
+            top5.forEach((student, index) => {
+                const average = calculateAverage(student);
+                html += `
+                    <li class="py-2 flex justify-between">
+                        <span>${index + 1}. ${student.name}</span>
+                        <span class="font-medium ${getScoreColor(average)}">${average.toFixed(1)}</span>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            
+            topStudentsElement.innerHTML = html;
+        }
+
+        // Load dynamic insights
+        async function loadDynamicInsights() {
+            try {
+                const response = await fetch('api/insights.php');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch insights');
+                }
+                const insights = await response.json();
+                
+                topStudentElement.textContent = insights.topStudent || 'N/A';
+                lowestSubjectElement.textContent = insights.lowestSubject || 'N/A';
+            } catch (error) {
+                console.error('Error loading insights:', error);
+                topStudentElement.textContent = 'Error loading data';
+                lowestSubjectElement.textContent = 'Error loading data';
+            }
+        }
+
+        // Render charts
+        function renderCharts() {
+            
+            renderSubjectChart();
+        }
+
+        // Render subject performance chart
+        function renderSubjectChart() {
+            const ctx = document.getElementById('subject-chart').getContext('2d');
+            
+            // Calculate average for each subject
+            const mathAvg = students.reduce((sum, student) => sum + parseInt(student.math), 0) / students.length;
+            const scienceAvg = students.reduce((sum, student) => sum + parseInt(student.science), 0) / students.length;
+            const englishAvg = students.reduce((sum, student) => sum + parseInt(student.english), 0) / students.length;
+            const historyAvg = students.reduce((sum, student) => sum + parseInt(student.history), 0) / students.length;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Math', 'Science', 'English', 'History'],
+                    datasets: [{
+                        label: 'Average Score',
+                        data: [mathAvg, scienceAvg, englishAvg, historyAvg],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(153, 102, 255, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
